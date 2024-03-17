@@ -22,10 +22,38 @@ taskRouter.post("/add", async (req, res) => {
 
 
 // To Get all tasks of the logged-in user with pagination
+// taskRouter.get("/", async (req, res) => {
+//     try {
+//         const page = parseInt(req.query.page) || 1;
+//         const tasksPerPage = 5;
+//         const skip = (page - 1) * tasksPerPage;
+
+//         // Only retrieve tasks created by the logged-in user
+//         const tasks = await taskModel
+//             .find({ createdBy: req.user.userID })
+//             .skip(skip)
+//             .limit(tasksPerPage);
+
+//         res.json({ msg: "List of Tasks", tasks });
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// });
+
+
+// To Get all tasks of the logged-in user with pagination
 taskRouter.get("/", async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const tasksPerPage = 5;
+        const tasksPerPage = 5; // Adjust this value according to your preference
+
+        // Count total tasks
+        const totalTasks = await taskModel.countDocuments({ createdBy: req.user.userID });
+
+        // Calculate total pages
+        const totalPages = Math.ceil(totalTasks / tasksPerPage);
+
+        // Skip and limit based on pagination
         const skip = (page - 1) * tasksPerPage;
 
         // Only retrieve tasks created by the logged-in user
@@ -34,11 +62,12 @@ taskRouter.get("/", async (req, res) => {
             .skip(skip)
             .limit(tasksPerPage);
 
-        res.json({ msg: "List of Tasks", tasks });
+        res.json({ msg: "List of Tasks", tasks, totalPages });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
+
 
 // To Update a task
 taskRouter.patch("/update/:taskID", async (req, res) => {
